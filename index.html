@@ -361,6 +361,42 @@
     <button class="btn" onclick="calculateChords()">🎯 Sonuçları Getir</button>
     <button class="btn" onclick="resetNotes()">🗑️ Temizle</button>
   </div>
+  <div class="chord-type-filter" style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+    <span style="font-weight: 500; color: #1976d2;">Akor Tipi Filtresi:</span>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="" checked> maj
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="m" checked> min
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="dim"> dim
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="maj7"> maj7
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="7"> 7
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="m7"> m7
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="m7b5"> m7b5
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="dim7"> dim7
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="sus2"> sus2
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px;">
+      <input type="checkbox" class="chord-type-checkbox" value="sus4"> sus4
+    </label>
+    <label style="display: flex; align-items: center; gap: 4px; font-weight: bold; color: #388e3c;">
+      <input type="checkbox" class="chord-type-checkbox" value="all"> Hepsi
+    </label>
+  </div>
   <div id="results"></div>
 </div>
 
@@ -455,17 +491,22 @@
     const sel = Array.from(document.querySelectorAll('#noteButtons .note-btn.active'))
                      .map(b=>b.textContent);
     const capo = +document.getElementById('capo').value;
+    let selectedChordTypes = getSelectedChordTypes();
     let results = [];
     for(const root of chromatic)
       for(const [sfx, ints] of Object.entries(chordTypes)){
+        if (!selectedChordTypes.includes(sfx)) continue;
         const notes = buildChord(root,ints);
         if(notes.every(n=>sel.includes(n))) {
+          // Pesleştirme: Kapo kadar geri kaydırılmış akor
+          const pesRoot = chromatic[(chromatic.indexOf(root)-capo+12)%12];
+          const pesName = pesRoot + sfx;
           // Gerçek akor (kapo ile çıkan ses)
-          const realRoot = chromatic[(chromatic.indexOf(root)+capo)%12];
-          const realName = realRoot + sfx;
+          const realRoot = root;
+          const realName = root + sfx;
           const realNotes = buildChord(realRoot, ints);
           results.push({
-            pressed: root+sfx,
+            pressed: pesName,
             real: realName,
             capo,
             notes: realNotes
@@ -582,6 +623,38 @@
     let distinctNotesHtml = `<div class="distinct-notes-box"><span class="distinct-notes-label">Tüm Notalar:</span> <span class="distinct-notes-list">${Array.from(allNotes).sort((a,b)=>chromatic.indexOf(a)-chromatic.indexOf(b)).join(' - ')}</span></div>`;
     document.getElementById('noteResults').innerHTML = distinctNotesHtml + tableHeader + rows + '</table>';
   }
+
+  // Akor tipi filtresi için seçimleri oku
+  function getSelectedChordTypes() {
+    const checkboxes = document.querySelectorAll('.chord-type-checkbox');
+    let selected = [];
+    let allChecked = false;
+    checkboxes.forEach(cb => {
+      if (cb.checked && cb.value === 'all') allChecked = true;
+      if (cb.checked && cb.value !== 'all') selected.push(cb.value);
+    });
+    if (allChecked || selected.length === 0) {
+      // Hepsi seçiliyse veya hiçbiri seçili değilse tüm tipleri döndür
+      return Object.keys(chordTypes);
+    }
+    return selected;
+  }
+
+  // Hepsi seçilince diğerlerini işaretle/temizle
+  document.querySelectorAll('.chord-type-checkbox').forEach(cb => {
+    cb.addEventListener('change', function() {
+      if (this.value === 'all') {
+        document.querySelectorAll('.chord-type-checkbox').forEach(x => { if (x.value !== 'all') x.checked = this.checked; });
+      } else {
+        const allBox = document.querySelector('.chord-type-checkbox[value="all"]');
+        if (!this.checked) allBox.checked = false;
+        else {
+          const others = Array.from(document.querySelectorAll('.chord-type-checkbox')).filter(x => x.value !== 'all');
+          if (others.every(x => x.checked)) allBox.checked = true;
+        }
+      }
+    });
+  });
 
   function showQuickMessage(msg) {
     let m = document.createElement('div');
