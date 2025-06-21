@@ -183,6 +183,50 @@
       border-color: #1565c0;
       box-shadow: 0 0 0 2px #bbdefb;
     }
+    /* Modern sonuç tablosu */
+    .modern-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 24px;
+      background: #f8fafc;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px rgba(33,150,243,0.07);
+      overflow: hidden;
+      font-size: 1.08em;
+    }
+    .modern-table th, .modern-table td {
+      padding: 16px 18px;
+      text-align: left;
+    }
+    .modern-table th {
+      background: linear-gradient(90deg, #1976d2 60%, #2196f3 100%);
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      border: none;
+    }
+    .modern-table tr:not(:last-child) td {
+      border-bottom: 1.5px solid #e3eaf2;
+    }
+    .modern-table td {
+      background: #fff;
+      color: #222;
+      border: none;
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      font-size: 1.08em;
+    }
+    .modern-table tr:hover td {
+      background: #e3f2fd;
+      transition: background 0.2s;
+    }
+    .modern-table .akor-cell {
+      font-family: inherit;
+      font-weight: 500;
+      color: #1976d2;
+      font-size: 1.13em;
+      letter-spacing: 0.2px;
+    }
   </style>
 </head>
 <body>
@@ -323,10 +367,10 @@
     results.sort((a,b)=>a.real.localeCompare(b.real));
 
     const html = results.length
-      ? `<table><tr><th>Akor</th><th>Notalar</th></tr>`+
+      ? `<table class="modern-table"><tr><th>Akor</th><th>Notalar</th></tr>`+
         results.map(r=>{
           let akorStr = r.capo > 0 ? `${r.pressed} [Kapo.${r.capo}] = ${r.real}` : r.real;
-          return `<tr><td>${akorStr}</td><td>${r.notes.join(' - ')}</td></tr>`;
+          return `<tr><td class='akor-cell'>${akorStr}</td><td>${r.notes.join(' - ')}</td></tr>`;
         }).join('')+
         `</table>`
       : `<p><strong>Sonuç bulunamadı.</strong></p>`;
@@ -419,7 +463,7 @@
       let akorStr = capo > 0 ? `${basilanAkor} [Kapo.${capo}] = ${gercekAkor}` : gercekAkor;
       return `<tr><td>${akorStr}</td><td>${gercekNotalar.join(' - ')}</td></tr>`;
     }).join('');
-    let tableHeader = `<table><tr><th>Akor</th><th>Notalar</th></tr>`;
+    let tableHeader = `<table class="modern-table"><tr><th>Akor</th><th>Notalar</th></tr>`;
     document.getElementById('noteResults').innerHTML = tableHeader + rows + '</table>';
   }
 
