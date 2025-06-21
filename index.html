@@ -8,8 +8,29 @@
     body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
     h1 { text-align: center; }
     .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-    .tab { padding: 10px 20px; background: #ddd; cursor: pointer; border-radius: 6px 6px 0 0; }
-    .tab.active { background: white; font-weight: bold; border-bottom: 2px solid white; }
+    .tab {
+      padding: 10px 20px;
+      background: #ddd;
+      cursor: pointer;
+      border-radius: 6px 6px 0 0;
+      font-size: 1.08em;
+      font-weight: 500;
+      color: #555;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      box-shadow: none;
+      border: none;
+    }
+    .tab.active {
+      background: linear-gradient(90deg, #1976d2 60%, #2196f3 100%);
+      color: #fff;
+      font-weight: bold;
+      border-bottom: 2px solid #1976d2;
+      box-shadow: 0 4px 16px rgba(33,150,243,0.13);
+      z-index: 2;
+      position: relative;
+      letter-spacing: 0.5px;
+      text-shadow: 0 2px 8px rgba(33,150,243,0.10);
+    }
     .tab-content { display: none; padding: 20px; background: white; border: 1px solid #ccc; border-radius: 0 0 8px 8px; }
     .tab-content.active { display: block; }
     .note-btn {
@@ -226,6 +247,36 @@
       color: #1976d2;
       font-size: 1.13em;
       letter-spacing: 0.2px;
+    }
+    /* Distinct nota kutusu için belirgin renkli stiller */
+    .distinct-notes-box {
+      margin-bottom: 16px;
+      padding: 12px 20px;
+      background: linear-gradient(90deg, #e3f2fd 60%, #bbdefb 100%);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(33,150,243,0.10);
+      font-size: 1.13em;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .distinct-notes-label {
+      color: #1565c0;
+      font-weight: bold;
+      margin-right: 8px;
+      letter-spacing: 0.3px;
+    }
+    .distinct-notes-list {
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      color: #fff;
+      background: #19d27d;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 1.13em;
+      letter-spacing: 1px;
+      box-shadow: 0 1px 4px rgba(33,150,243,0.10);
+      display: inline-block;
     }
   </style>
 </head>
@@ -455,16 +506,19 @@
       document.getElementById('noteResults').innerHTML = '<p><strong>Liste boş.</strong></p>';
       return;
     }
+    let allNotes = new Set();
     let rows = chordList.map(c => {
       const basilanAkor = c.root + c.type;
       const gercekRoot = chromatic[(chromatic.indexOf(c.root)+capo)%12];
       const gercekAkor = gercekRoot + c.type;
       const gercekNotalar = buildChord(gercekRoot, chordTypes[c.type]||[]);
+      gercekNotalar.forEach(n => allNotes.add(n));
       let akorStr = capo > 0 ? `${basilanAkor} [Kapo.${capo}] = ${gercekAkor}` : gercekAkor;
       return `<tr><td>${akorStr}</td><td>${gercekNotalar.join(' - ')}</td></tr>`;
     }).join('');
     let tableHeader = `<table class="modern-table"><tr><th>Akor</th><th>Notalar</th></tr>`;
-    document.getElementById('noteResults').innerHTML = tableHeader + rows + '</table>';
+    let distinctNotesHtml = `<div class="distinct-notes-box"><span class="distinct-notes-label">Tüm Notalar:</span> <span class="distinct-notes-list">${Array.from(allNotes).sort((a,b)=>chromatic.indexOf(a)-chromatic.indexOf(b)).join(' - ')}</span></div>`;
+    document.getElementById('noteResults').innerHTML = distinctNotesHtml + tableHeader + rows + '</table>';
   }
 
   function showQuickMessage(msg) {
