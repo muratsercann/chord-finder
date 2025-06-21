@@ -255,7 +255,7 @@
 </div>
 
 <script>
-  const chromatic = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  const chromatic = ["C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B"];
   const chordTypes = {
     "": [0,4,7],
     "dim": [0,3,6], "m":[0,3,7], "maj7":[0,4,7,11],
@@ -306,32 +306,28 @@
     for(const root of chromatic)
       for(const [sfx, ints] of Object.entries(chordTypes)){
         const notes = buildChord(root,ints);
-        if(notes.every(n=>sel.includes(n)))
+        if(notes.every(n=>sel.includes(n))) {
+          // Gerçek akor (kapo ile çıkan ses)
+          const realRoot = chromatic[(chromatic.indexOf(root)+capo)%12];
+          const realName = realRoot + sfx;
+          const realNotes = buildChord(realRoot, ints);
           results.push({
-            name: root+sfx,
-            shape: transposeDown(root,capo)+sfx,
-            notes
+            pressed: root+sfx,
+            real: realName,
+            capo,
+            notes: realNotes
           });
+        }
       }
 
-    results.sort((a,b)=>{
-      const grp = x=>{
-        const t=x.name.replace(/^[A-G#]+/,'');
-        if(t===""||t=="m") return 0;
-        if(["maj7","7","m7","m7b5","dim7"].includes(t)) return 1;
-        if(["sus2","sus4"].includes(t)) return 2;
-        return 3;
-      };
-      const ra=a.name.match(/^[A-G#]+/)[0], rb=b.name.match(/^[A-G#]+/)[0];
-      const ga=grp(a), gb=grp(b);
-      if(ga!=gb) return ga-gb;
-      if(ra!=rb) return chromatic.indexOf(ra)-chromatic.indexOf(rb);
-      return a.name.localeCompare(b.name);
-    });
+    results.sort((a,b)=>a.real.localeCompare(b.real));
 
     const html = results.length
-      ? `<table><tr><th>Gerçek Akor</th><th>Basılacak</th><th>Notalar</th></tr>`+
-        results.map(r=>`<tr><td>${r.name}</td><td>${r.shape}</td><td>${r.notes.join(' - ')}</td></tr>`).join('')+
+      ? `<table><tr><th>Akor</th><th>Notalar</th></tr>`+
+        results.map(r=>{
+          let akorStr = r.capo > 0 ? `${r.pressed} [Kapo.${r.capo}] = ${r.real}` : r.real;
+          return `<tr><td>${akorStr}</td><td>${r.notes.join(' - ')}</td></tr>`;
+        }).join('')+
         `</table>`
       : `<p><strong>Sonuç bulunamadı.</strong></p>`;
     document.getElementById('results').innerHTML = html;
@@ -415,33 +411,16 @@
       document.getElementById('noteResults').innerHTML = '<p><strong>Liste boş.</strong></p>';
       return;
     }
-    let kaposuzNotalar = new Set();
-    let kapoluNotalar = new Set();
     let rows = chordList.map(c => {
-      // Basılacak akor (kullanıcının seçtiği)
       const basilanAkor = c.root + c.type;
-      const basilanNotalar = buildChord(c.root, chordTypes[c.type]||[]);
-      basilanNotalar.forEach(n => kapoluNotalar.add(n));
-      // Gerçek akor (kapo ile çıkan ses)
       const gercekRoot = chromatic[(chromatic.indexOf(c.root)+capo)%12];
       const gercekAkor = gercekRoot + c.type;
       const gercekNotalar = buildChord(gercekRoot, chordTypes[c.type]||[]);
-      gercekNotalar.forEach(n => kaposuzNotalar.add(n));
-      return `<tr><td>${basilanAkor}</td><td>${basilanNotalar.join(' - ')}</td><td>${capo > 0 ? gercekAkor : '-'}</td><td>${capo > 0 ? gercekNotalar.join(' - ') : '-'}</td></tr>`;
+      let akorStr = capo > 0 ? `${basilanAkor} [Kapo.${capo}] = ${gercekAkor}` : gercekAkor;
+      return `<tr><td>${akorStr}</td><td>${gercekNotalar.join(' - ')}</td></tr>`;
     }).join('');
-    // Sonuçların üstüne notaları ekle
-    let distinctHtml = `<div class='result-notes-box'>
-      <div class='result-notes-col'>
-        <div class='result-notes-title'>Gerçek Notalar</div>
-        <div class='result-notes-list'>${Array.from(kaposuzNotalar).sort((a,b)=>chromatic.indexOf(a)-chromatic.indexOf(b)).join(' - ')}</div>
-      </div>
-      <div class='result-notes-col'>
-        <div class='result-notes-title'>Kaposuz</div>
-        <div class='result-notes-list'>${Array.from(kapoluNotalar).sort((a,b)=>chromatic.indexOf(a)-chromatic.indexOf(b)).join(' - ')}</div>
-      </div>
-    </div>`;
-    let tableHeader = `<table><tr><th>Basılacak Akor</th><th>Basılacak Notalar</th><th>Gerçek Akor</th><th>Gerçek Notalar</th></tr>`;
-    document.getElementById('noteResults').innerHTML = distinctHtml + tableHeader + rows + '</table>';
+    let tableHeader = `<table><tr><th>Akor</th><th>Notalar</th></tr>`;
+    document.getElementById('noteResults').innerHTML = tableHeader + rows + '</table>';
   }
 
   function showQuickMessage(msg) {
