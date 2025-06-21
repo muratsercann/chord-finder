@@ -517,12 +517,12 @@
     results.sort((a,b)=>a.real.localeCompare(b.real));
 
     const html = results.length
-      ? `<table class="modern-table"><tr><th>Akor</th><th>Notalar</th></tr>`+
-        results.map(r=>{
+      ? `<table class="modern-table"><tr><th>#</th><th>Akor</th><th>Notalar</th></tr>`+
+        results.map((r, i)=>{
           let akorStr = r.capo > 0
             ? `<span class='akor-flex'><span class='akor-original'>${r.pressed}</span><span class='akor-kapo'>Kapo ${r.capo}</span><span class='akor-arrow'>&rarr;</span><span class='akor-real'>${r.real}</span></span>`
             : `<span class='akor-flex'><span class='akor-real'>${r.real}</span></span>`;
-          return `<tr><td class='akor-cell'>${akorStr}</td><td>${r.notes.join(' - ')}</td></tr>`;
+          return `<tr><td>${i+1}</td><td class='akor-cell'>${akorStr}</td><td>${r.notes.join(' - ')}</td></tr>`;
         }).join('')+
         `</table>`
       : `<p><strong>Sonuç bulunamadı.</strong></p>`;
@@ -608,7 +608,7 @@
       return;
     }
     let allNotes = new Set();
-    let rows = chordList.map(c => {
+    let rows = chordList.map((c, i) => {
       const basilanAkor = c.root + c.type;
       const gercekRoot = chromatic[(chromatic.indexOf(c.root)+capo)%12];
       const gercekAkor = gercekRoot + c.type;
@@ -617,9 +617,9 @@
       let akorStr = capo > 0
         ? `<span class='akor-flex'><span class='akor-original'>${basilanAkor}</span><span class='akor-kapo'>Kapo ${capo}</span><span class='akor-arrow'>&rarr;</span><span class='akor-real'>${gercekAkor}</span></span>`
         : `<span class='akor-flex'><span class='akor-real'>${gercekAkor}</span></span>`;
-      return `<tr><td class='akor-cell'>${akorStr}</td><td>${gercekNotalar.join(' - ')}</td></tr>`;
+      return `<tr><td>${i+1}</td><td class='akor-cell'>${akorStr}</td><td>${gercekNotalar.join(' - ')}</td></tr>`;
     }).join('');
-    let tableHeader = `<table class="modern-table"><tr><th>Akor</th><th>Notalar</th></tr>`;
+    let tableHeader = `<table class="modern-table"><tr><th>#</th><th>Akor</th><th>Notalar</th></tr>`;
     let distinctNotesHtml = `<div class="distinct-notes-box"><span class="distinct-notes-label">Tüm Notalar:</span> <span class="distinct-notes-list">${Array.from(allNotes).sort((a,b)=>chromatic.indexOf(a)-chromatic.indexOf(b)).join(' - ')}</span></div>`;
     document.getElementById('noteResults').innerHTML = distinctNotesHtml + tableHeader + rows + '</table>';
   }
