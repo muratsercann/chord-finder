@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Akor & Nota Bulucu</title>
+  <style>
+    body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+    h1 { text-align: center; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab { padding: 10px 20px; background: #ddd; cursor: pointer; border-radius: 6px 6px 0 0; }
+    .tab.active { background: white; font-weight: bold; border-bottom: 2px solid white; }
+    .tab-content { display: none; padding: 20px; background: white; border: 1px solid #ccc; border-radius: 0 0 8px 8px; }
+    .tab-content.active { display: block; }
+    .note-btn {
+      padding: 10px; margin: 4px; border: 1px solid #888;
+      border-radius: 6px; background-color: white; color: #333;
+      cursor: pointer; min-width: 40px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .note-btn.active {
+      background-color: #2196f3;
+      color: white;
+      font-weight: bold;
+      border-color: #0b66c2;
+    }
+    .note-btn:hover:not(.active) {
+      background-color: #e0e0e0;
+    }
+    .btn {
+      padding: 10px 18px;
+      background: linear-gradient(90deg, #1976d2 60%, #2196f3 100%);
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.3s, box-shadow 0.2s;
+      margin: 5px 4px;
+      box-shadow: 0 2px 6px rgba(33,150,243,0.13);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1em;
+      letter-spacing: 0.2px;
+    }
+    .btn--ekle {
+      background: linear-gradient(90deg, #43a047 60%, #66bb6a 100%);
+      justify-content: center;
+    }
+    .btn--ekle:hover {
+      background: linear-gradient(90deg, #388e3c 60%, #43a047 100%);
+    }
+    .btn--temizle {
+      background: linear-gradient(90deg, #e53935 60%, #e57373 100%);
+    }
+    .btn--temizle:hover {
+      background: linear-gradient(90deg, #b71c1c 60%, #e53935 100%);
+    }
+    .btn svg {
+      width: 1.2em;
+      height: 1.2em;
+      vertical-align: middle;
+      fill: white;
+    }
+    .controls { margin: 15px 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #aaa; padding: 10px; text-align: left; }
+    th { background: #e0e0e0; }
+    .chord-item {
+      background: #2196f3; color: white; padding: 6px 10px;
+      margin: 5px; display: inline-block; border-radius: 4px;
+    }
+    .chord-item button {
+      background: none; border: none; color: white;
+      margin-left: 8px; cursor: pointer;
+    }
+    .radio-group { margin: 10px 0; display: flex; flex-wrap: wrap; }
+    .result-notes-box {
+      display: flex;
+      gap: 40px;
+      justify-content: flex-start;
+      align-items: flex-start;
+      margin-bottom: 18px;
+      padding: 12px 18px;
+      background: #e3f2fd;
+      border-radius: 8px;
+      font-size: 1.08em;
+      box-shadow: 0 2px 8px rgba(33,150,243,0.07);
+    }
+    .result-notes-col {
+      min-width: 220px;
+    }
+    .result-notes-title {
+      font-weight: bold;
+      color: #1976d2;
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+    .result-notes-list {
+      font-family: 'Fira Mono', 'Consolas', monospace;
+      color: #333;
+      background: #fff;
+      border-radius: 4px;
+      padding: 4px 8px;
+      display: inline-block;
+      min-width: 120px;
+      text-align: left;
+    }
+    /* Kök nota seçimleri (mor) */
+    #letterButtons .note-btn {
+      background: #ede7f6;
+      color: #512da8;
+      border-color: #b39ddb;
+    }
+    #letterButtons .note-btn.active {
+      background: #7e57c2;
+      color: #fff;
+      border-color: #512da8;
+    }
+    /* İşaret seçimleri (yeşil) */
+    #accidentalButtons .note-btn {
+      background: #e8f5e9;
+      color: #388e3c;
+      border-color: #a5d6a7;
+    }
+    #accidentalButtons .note-btn.active {
+      background: #43a047;
+      color: #fff;
+      border-color: #1b5e20;
+    }
+    /* Akor tipi seçimleri (turuncu) */
+    #chordTypeButtons .note-btn {
+      background: #fff3e0;
+      color: #ef6c00;
+      border-color: #ffcc80;
+    }
+    #chordTypeButtons .note-btn.active {
+      background: #ff9800;
+      color: #fff;
+      border-color: #ef6c00;
+    }
+    /* Kapo +/- butonları için yeni stil */
+    .btn--capo {
+      background: #f5f5f5;
+      color: #1976d2;
+      border: 1.2px solid #1976d2;
+      box-shadow: none;
+      font-size: 1.1em;
+      padding: 5px 10px;
+      min-width: 32px;
+      border-radius: 5px;
+      transition: background 0.2s, color 0.2s, border 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn--capo:hover {
+      background: #e3f2fd;
+      color: #0d47a1;
+      border-color: #1565c0;
+    }
+    .btn--capo svg {
+      width: 1.1em;
+      height: 1.1em;
+      fill: currentColor;
+      display: block;
+    }
+    input[type="number"]#capo, input[type="number"]#capo2 {
+      width: 48px;
+      padding: 8px 6px;
+      font-size: 1.1em;
+      border: 1.5px solid #1976d2;
+      border-radius: 6px;
+      margin: 0 8px;
+      text-align: center;
+      background: #f5faff;
+      color: #1976d2;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+    input[type="number"]#capo:focus, input[type="number"]#capo2:focus {
+      border-color: #1565c0;
+      box-shadow: 0 0 0 2px #bbdefb;
+    }
+  </style>
+</head>
+<body>
+<h1>Akor & Nota Bulucu</h1>
+
+<div class="tabs">
+  <div class="tab active" data-tab="tab1">Akor Bulucu</div>
+  <div class="tab" data-tab="tab2">Nota Bulucu</div>
+</div>
+
+<div id="tab1" class="tab-content active">
+  <h3>Notaları Seç:</h3>
+  <div id="noteButtons"></div>
+  <div class="controls">
+    <label>Kapo:</label>
+    <button class="btn btn--capo" onclick="adjustCapo(-1)">
+      <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <input type="number" id="capo" min="0" max="11" value="0" />
+    <button class="btn btn--capo" onclick="adjustCapo(1)">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <button class="btn" onclick="calculateChords()">🎯 Sonuçları Getir</button>
+    <button class="btn" onclick="resetNotes()">🗑️ Temizle</button>
+  </div>
+  <div id="results"></div>
+</div>
+
+<div id="tab2" class="tab-content">
+  <form onsubmit="event.preventDefault(); addChord();">
+    <label>Kök Nota:</label>
+    <div class="radio-group" id="letterButtons"></div>
+
+    <label>İşaret:</label>
+    <div class="radio-group" id="accidentalButtons">
+      <button class="note-btn active" data-val="natural">♮</button>
+      <button class="note-btn" data-val="sharp">♯</button>
+      <button class="note-btn" data-val="flat">♭</button>
+    </div>
+
+    <label>Akor Tipi:</label>
+    <div class="radio-group" id="chordTypeButtons"></div>
+
+    <div>
+      <button type="submit" class="btn btn--ekle">
+        <svg viewBox="0 0 24 24"><path d="M6 12h12M12 6v12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg>
+        Ekle
+      </button>
+      <button type="button" class="btn btn--temizle" onclick="clearChordList()">
+        <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V7H6v12zm3-9h2v6h-2v-6zm4 0h2v6h-2v-6zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+        Temizle
+      </button>
+    </div>
+  </form>
+
+  <div class="controls">
+    <label>Kapo:</label>
+    <button class="btn btn--capo" onclick="adjustCapo2(-1)">
+      <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <input type="number" id="capo2" min="0" max="11" value="0" />
+    <button class="btn btn--capo" onclick="adjustCapo2(1)">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="5" y1="12" x2="19" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+    <button class="btn" onclick="calculateNotes()">🎯 Sonuçları Getir</button>
+  </div>
+
+  <div id="chordList"></div>
+  <div id="noteResults"></div>
+</div>
+
+<script>
+  const chromatic = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  const chordTypes = {
+    "": [0,4,7],
+    "dim": [0,3,6], "m":[0,3,7], "maj7":[0,4,7,11],
+    "7":[0,4,7,10], "m7":[0,3,7,10], "m7b5":[0,3,6,10],
+    "dim7":[0,3,6,9], "sus2":[0,2,7], "sus4":[0,5,7]
+  };
+
+  document.querySelectorAll('.tab').forEach(t => {
+    t.onclick = () => {
+      document.querySelectorAll('.tab').forEach(a=>a.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById(t.dataset.tab).classList.add('active');
+    };
+  });
+
+  // Akor bulucu çoklu seç
+  const noteButtonsContainer = document.getElementById('noteButtons');
+  chromatic.forEach(n => {
+    const b = document.createElement('button');
+    b.textContent = n; b.className = 'note-btn';
+    b.onclick = e => { e.preventDefault(); b.classList.toggle('active'); };
+    noteButtonsContainer.appendChild(b);
+  });
+
+  function resetNotes() {
+    document.querySelectorAll('#noteButtons .note-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('results').innerHTML = '';
+  }
+  function adjustCapo(v) {
+    const e=document.getElementById('capo'), val=+e.value+v;
+    e.value = Math.max(0,Math.min(11,val));
+  }
+
+  function buildChord(r, ints) {
+    const i=chromatic.indexOf(r);
+    return ints.map(s=>chromatic[(i+s)%12]);
+  }
+  function transposeDown(n, s) {
+    return chromatic[(chromatic.indexOf(n)-s+12)%12];
+  }
+
+  function calculateChords() {
+    const sel = Array.from(document.querySelectorAll('#noteButtons .note-btn.active'))
+                     .map(b=>b.textContent);
+    const capo = +document.getElementById('capo').value;
+    let results = [];
+    for(const root of chromatic)
+      for(const [sfx, ints] of Object.entries(chordTypes)){
+        const notes = buildChord(root,ints);
+        if(notes.every(n=>sel.includes(n)))
+          results.push({
+            name: root+sfx,
+            shape: transposeDown(root,capo)+sfx,
+            notes
+          });
+      }
+
+    results.sort((a,b)=>{
+      const grp = x=>{
+        const t=x.name.replace(/^[A-G#]+/,'');
+        if(t===""||t=="m") return 0;
+        if(["maj7","7","m7","m7b5","dim7"].includes(t)) return 1;
+        if(["sus2","sus4"].includes(t)) return 2;
+        return 3;
+      };
+      const ra=a.name.match(/^[A-G#]+/)[0], rb=b.name.match(/^[A-G#]+/)[0];
+      const ga=grp(a), gb=grp(b);
+      if(ga!=gb) return ga-gb;
+      if(ra!=rb) return chromatic.indexOf(ra)-chromatic.indexOf(rb);
+      return a.name.localeCompare(b.name);
+    });
+
+    const html = results.length
+      ? `<table><tr><th>Gerçek Akor</th><th>Basılacak</th><th>Notalar</th></tr>`+
+        results.map(r=>`<tr><td>${r.name}</td><td>${r.shape}</td><td>${r.notes.join(' - ')}</td></tr>`).join('')+
+        `</table>`
+      : `<p><strong>Sonuç bulunamadı.</strong></p>`;
+    document.getElementById('results').innerHTML = html;
+  }
+
+  // Nota Bulucu tek seçim
+  const letters=['A','B','C','D','E','F','G'];
+  let selectedLetter=null, selectedAcc='natural', selectedType="";
+  const lb=document.getElementById('letterButtons');
+  letters.forEach(l=>{
+    const b=document.createElement('button');
+    b.textContent=l; b.className='note-btn';
+    b.onclick=e=>{
+      e.preventDefault();
+      document.querySelectorAll('#letterButtons .note-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      selectedLetter=l;
+    };
+    lb.appendChild(b);
+  });
+
+  document.querySelectorAll('#accidentalButtons button').forEach(b=>{
+    b.onclick=e=>{
+      e.preventDefault();
+      document.querySelectorAll('#accidentalButtons button').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      selectedAcc=b.dataset.val;
+    };
+  });
+
+  const types=["","m","dim","maj7","7","m7","m7b5","dim7","sus2","sus4"];
+  const tb=document.getElementById('chordTypeButtons');
+  types.forEach(t=>{
+    const b=document.createElement('button');
+    b.textContent=t||'maj'; b.className='note-btn';
+    if(t==="") b.classList.add('active');
+    b.onclick=e=>{
+      e.preventDefault();
+      document.querySelectorAll('#chordTypeButtons .note-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+      selectedType=t;
+    };
+    tb.appendChild(b);
+  });
+
+  let chordList=[];
+  function addChord(){
+    if(!selectedLetter) return showQuickMessage("Kök nota seçiniz.");
+    let root=selectedLetter;
+    if(selectedAcc=="sharp") root=chromatic[(chromatic.indexOf(root)+1)%12];
+    if(selectedAcc=="flat") root=chromatic[(chromatic.indexOf(root)+11)%12];
+    const type=selectedType;
+    if(chordList.some(c=>c.root===root&&c.type===type)) {
+      showQuickMessage("Bu akor zaten eklendi.");
+      return;
+    }
+    chordList.push({root,type}); renderChordList();
+  }
+  function renderChordList(){
+    const dl=document.getElementById('chordList'); dl.innerHTML='';
+    chordList.forEach((c,i)=>{
+      const d=document.createElement('div');
+      d.className='chord-item';
+      d.innerHTML=`${c.root}${c.type} <button onclick="removeChord(${i})">×</button>`;
+      dl.appendChild(d);
+    });
+  }
+  function removeChord(i){ chordList.splice(i,1); renderChordList(); }
+  function clearChordList(){
+    chordList=[]; renderChordList();
+    document.getElementById('noteResults').innerHTML=''; // Temizle butonunda sonuçlar silinsin
+  }
+  function adjustCapo2(v) {
+    const e=document.getElementById('capo2'), val=+e.value+v;
+    e.value = Math.max(0,Math.min(11,val));
+  }
+  function calculateNotes(){
+    document.getElementById('noteResults').innerHTML = '';
+    const capo = +document.getElementById('capo2').value;
+    if (!chordList.length) {
+      document.getElementById('noteResults').innerHTML = '<p><strong>Liste boş.</strong></p>';
+      return;
+    }
+    let kaposuzNotalar = new Set();
+    let kapoluNotalar = new Set();
+    let rows = chordList.map(c => {
+      // Basılacak akor (kullanıcının seçtiği)
+      const basilanAkor = c.root + c.type;
+      const basilanNotalar = buildChord(c.root, chordTypes[c.type]||[]);
+      basilanNotalar.forEach(n => kapoluNotalar.add(n));
+      // Gerçek akor (kapo ile çıkan ses)
+      const gercekRoot = chromatic[(chromatic.indexOf(c.root)+capo)%12];
+      const gercekAkor = gercekRoot + c.type;
+      const gercekNotalar = buildChord(gercekRoot, chordTypes[c.type]||[]);
+      gercekNotalar.forEach(n => kaposuzNotalar.add(n));
+      return `<tr><td>${basilanAkor}</td><td>${basilanNotalar.join(' - ')}</td><td>${capo > 0 ? gercekAkor : '-'}</td><td>${capo > 0 ? gercekNotalar.join(' - ') : '-'}</td></tr>`;
+    }).join('');
+    // Sonuçların üstüne notaları ekle
+    let distinctHtml = `<div class='result-notes-box'>
+      <div class='result-notes-col'>
+        <div class='result-notes-title'>Gerçek Notalar</div>
+        <div class='result-notes-list'>${Array.from(kaposuzNotalar).sort((a,b)=>chromatic.indexOf(a)-chromatic.indexOf(b)).join(' - ')}</div>
+      </div>
+      <div class='result-notes-col'>
+        <div class='result-notes-title'>Kaposuz</div>
+        <div class='result-notes-list'>${Array.from(kapoluNotalar).sort((a,b)=>chromatic.indexOf(a)-chromatic.indexOf(b)).join(' - ')}</div>
+      </div>
+    </div>`;
+    let tableHeader = `<table><tr><th>Basılacak Akor</th><th>Basılacak Notalar</th><th>Gerçek Akor</th><th>Gerçek Notalar</th></tr>`;
+    document.getElementById('noteResults').innerHTML = distinctHtml + tableHeader + rows + '</table>';
+  }
+
+  function showQuickMessage(msg) {
+    let m = document.createElement('div');
+    m.textContent = msg;
+    m.style.position = 'fixed';
+    m.style.top = '24px';
+    m.style.left = '50%';
+    m.style.transform = 'translateX(-50%)';
+    m.style.background = '#43a047';
+    m.style.color = 'white';
+    m.style.padding = '10px 24px';
+    m.style.borderRadius = '8px';
+    m.style.fontWeight = 'bold';
+    m.style.fontSize = '1.08em';
+    m.style.boxShadow = '0 2px 12px rgba(67,160,71,0.13)';
+    m.style.zIndex = 9999;
+    document.body.appendChild(m);
+    setTimeout(()=>{ m.style.opacity='0'; m.style.transition='opacity 0.5s'; }, 1200);
+    setTimeout(()=>{ m.remove(); }, 1800);
+  }
+</script>
+</body>
+</html>
