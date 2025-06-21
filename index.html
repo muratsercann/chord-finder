@@ -241,12 +241,35 @@
       background: #e3f2fd;
       transition: background 0.2s;
     }
-    .modern-table .akor-cell {
-      font-family: inherit;
-      font-weight: 500;
+    /* Akor sütunu için modern ve okunaklı stiller */
+    .akor-cell { font-family: inherit; font-weight: 500; font-size: 1.13em; letter-spacing: 0.2px; }
+    .akor-original {
       color: #1976d2;
-      font-size: 1.13em;
-      letter-spacing: 0.2px;
+      font-weight: bold;
+      font-size: 1.08em;
+      margin-right: 6px;
+    }
+    .akor-kapo {
+      background: #e0e7ff;
+      color: #1e40af;
+      border-radius: 8px;
+      padding: 2px 8px;
+      font-size: 0.95em;
+      margin-right: 8px;
+      font-weight: 500;
+      display: inline-block;
+    }
+    .akor-arrow {
+      color: #888;
+      font-size: 1.1em;
+      margin-right: 8px;
+      margin-left: 2px;
+      font-weight: bold;
+    }
+    .akor-real {
+      color: #0d47a1;
+      font-weight: bold;
+      font-size: 1.08em;
     }
     /* Distinct nota kutusu için belirgin renkli stiller */
     .distinct-notes-box {
@@ -276,6 +299,32 @@
       font-size: 1.13em;
       letter-spacing: 1px;
       box-shadow: 0 1px 4px rgba(33,150,243,0.10);
+      display: inline-block;
+    }
+    /* Yeni stiller: Akor Bulucu sonuçları için */
+    .akor-original {
+      color: #0d47a1;
+      font-weight: 500;
+    }
+    .akor-kapo {
+      color: #e65100;
+      font-weight: 500;
+    }
+    .akor-real {
+      color: #2e7d32;
+      font-weight: 500;
+    }
+    .akor-arrow {
+      color: #1976d2;
+      font-weight: bold;
+      padding: 0 4px;
+    }
+    /* Tüm ekranı kaplayan svg'ler için önlem */
+    svg {
+      max-width: 2em;
+      max-height: 2em;
+      width: 1em;
+      height: 1em;
       display: inline-block;
     }
   </style>
@@ -420,7 +469,9 @@
     const html = results.length
       ? `<table class="modern-table"><tr><th>Akor</th><th>Notalar</th></tr>`+
         results.map(r=>{
-          let akorStr = r.capo > 0 ? `${r.pressed} [Kapo.${r.capo}] = ${r.real}` : r.real;
+          let akorStr = r.capo > 0
+            ? `<span class='akor-original'>${r.pressed}</span> <span class='akor-kapo'>Kapo ${r.capo}</span> <span class='akor-arrow'>&rarr;</span> <span class='akor-real'>${r.real}</span>`
+            : `<span class='akor-real'>${r.real}</span>`;
           return `<tr><td class='akor-cell'>${akorStr}</td><td>${r.notes.join(' - ')}</td></tr>`;
         }).join('')+
         `</table>`
