@@ -243,11 +243,18 @@
     }
     /* Akor sütunu için modern ve okunaklı stiller */
     .akor-cell { font-family: inherit; font-weight: 500; font-size: 1.13em; letter-spacing: 0.2px; }
+    .akor-flex {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
     .akor-original {
       color: #1976d2;
       font-weight: bold;
       font-size: 1.08em;
       margin-right: 6px;
+      min-width: 70px;
+      display: inline-block;
     }
     .akor-kapo {
       background: #e0e7ff;
@@ -258,6 +265,8 @@
       margin-right: 8px;
       font-weight: 500;
       display: inline-block;
+      min-width: 70px;
+      text-align: center;
     }
     .akor-arrow {
       color: #888;
@@ -312,7 +321,7 @@
     }
     .akor-real {
       color: #2e7d32;
-      font-weight: 500;
+      font-weight: bold;
     }
     .akor-arrow {
       color: #1976d2;
@@ -470,8 +479,8 @@
       ? `<table class="modern-table"><tr><th>Akor</th><th>Notalar</th></tr>`+
         results.map(r=>{
           let akorStr = r.capo > 0
-            ? `<span class='akor-original'>${r.pressed}</span> <span class='akor-kapo'>Kapo ${r.capo}</span> <span class='akor-arrow'>&rarr;</span> <span class='akor-real'>${r.real}</span>`
-            : `<span class='akor-real'>${r.real}</span>`;
+            ? `<span class='akor-flex'><span class='akor-original'>${r.pressed}</span><span class='akor-kapo'>Kapo ${r.capo}</span><span class='akor-arrow'>&rarr;</span><span class='akor-real'>${r.real}</span></span>`
+            : `<span class='akor-flex'><span class='akor-real'>${r.real}</span></span>`;
           return `<tr><td class='akor-cell'>${akorStr}</td><td>${r.notes.join(' - ')}</td></tr>`;
         }).join('')+
         `</table>`
@@ -564,8 +573,10 @@
       const gercekAkor = gercekRoot + c.type;
       const gercekNotalar = buildChord(gercekRoot, chordTypes[c.type]||[]);
       gercekNotalar.forEach(n => allNotes.add(n));
-      let akorStr = capo > 0 ? `${basilanAkor} [Kapo.${capo}] = ${gercekAkor}` : gercekAkor;
-      return `<tr><td>${akorStr}</td><td>${gercekNotalar.join(' - ')}</td></tr>`;
+      let akorStr = capo > 0
+        ? `<span class='akor-flex'><span class='akor-original'>${basilanAkor}</span><span class='akor-kapo'>Kapo ${capo}</span><span class='akor-arrow'>&rarr;</span><span class='akor-real'>${gercekAkor}</span></span>`
+        : `<span class='akor-flex'><span class='akor-real'>${gercekAkor}</span></span>`;
+      return `<tr><td class='akor-cell'>${akorStr}</td><td>${gercekNotalar.join(' - ')}</td></tr>`;
     }).join('');
     let tableHeader = `<table class="modern-table"><tr><th>Akor</th><th>Notalar</th></tr>`;
     let distinctNotesHtml = `<div class="distinct-notes-box"><span class="distinct-notes-label">Tüm Notalar:</span> <span class="distinct-notes-list">${Array.from(allNotes).sort((a,b)=>chromatic.indexOf(a)-chromatic.indexOf(b)).join(' - ')}</span></div>`;
